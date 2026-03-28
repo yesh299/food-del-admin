@@ -1,6 +1,6 @@
 import React from "react";
 import "./Order.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { assets } from "../../assets/assets";
@@ -8,12 +8,11 @@ import { assets } from "../../assets/assets";
 const Order = ({ url }) => {
   const [order, setOrder] = useState([]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const response = await axios.get(url + "/api/order/list");
       if (response.data.success) {
         setOrder(response.data.data);
-        console.log(response.data.data);
       } else {
         toast.error("Error");
       }
@@ -21,21 +20,31 @@ const Order = ({ url }) => {
       toast.error("Failed to fetch orders");
       console.error(error);
     }
-  };
+  }, [url]);
 
   const statusHandle = async (event, orderId) => {
-    const response = await axios.put(url + "/api/order/status", {
-      orderId: orderId,
-      status: event.target.value,
-    });
-    if (response.data.success) {
-      await fetchOrders();
+    try {
+      const response = await axios.post(url + "/api/order/status", {
+        orderId,
+        status: event.target.value,
+      });
+      if (response.data.success) {
+        await fetchOrders();
+      } else {
+        toast.error(response.data.message || "Status update failed");
+      }
+    } catch {
+      toast.error("Failed to update status");
     }
   };
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    const timeoutId = setTimeout(() => {
+      fetchOrders();
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, [fetchOrders]);
 
   return (
     <div className="order add">

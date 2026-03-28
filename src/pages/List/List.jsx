@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import "./List.css";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 function List({ url }) {
   const [list, setList] = useState([]);
 
-  const fetchList = async () => {
+  const fetchList = useCallback(async () => {
     try {
       const response = await axios.get(`${url}/api/food/list`);
       if (response.data.success) {
@@ -14,10 +14,10 @@ function List({ url }) {
       } else {
         toast.error("Error fetching food list");
       }
-    } catch (error) {
+    } catch {
       toast.error("Server error while fetching list");
     }
-  };
+  }, [url]);
 
   const removeFood = async (foodId) => {
     try {
@@ -30,14 +30,18 @@ function List({ url }) {
       } else {
         toast.error("Error removing food");
       }
-    } catch (error) {
+    } catch {
       toast.error("Server error while removing food");
     }
   };
 
   useEffect(() => {
-    fetchList();
-  }, []);
+    const timeoutId = setTimeout(() => {
+      fetchList();
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, [fetchList]);
 
   return (
     <div className="List add flex-col">

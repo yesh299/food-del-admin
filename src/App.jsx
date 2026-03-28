@@ -9,8 +9,12 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const App = () => {
-
-const url = "https://food-del-backend-2bhv.onrender.com";
+  const defaultApiBase =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+      ? "http://localhost:4000"
+      : "https://food-del-backend-2bhv.onrender.com";
+  const url = import.meta.env.VITE_API_URL || defaultApiBase;
 
 
   return (
